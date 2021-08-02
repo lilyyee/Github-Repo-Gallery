@@ -1,6 +1,8 @@
 const overview = document.querySelector(".overview");   // Where my profile info will appear
 const username = "lilyyee";   // Github username
-const repoList = document.querySelector(".repo-list");   // Unordered list to display repos 
+const repoList = document.querySelector(".repo-list");   // Unordered list to display repos
+const allRepos = document.querySelector(".repos");   // Section where all the repo info appears
+const repoData = document.querySelector(".repo-data");  // Where the individual repo data appears
 
 // Fetch GitHub user info data
 const gitUserInfo = async function (){
@@ -49,3 +51,48 @@ const displayRepos = function (repos){
     }
 };
 
+// Click event for displayed repos
+repoList.addEventListener("click", function(e){
+    if(e.target.matches("h3")){
+        const repoName = e.target.innerText;
+        //console.log(repoName);
+        getRepoInfo(repoName);
+    }
+});
+
+// Function to fetch specific repo info
+const getRepoInfo = async function (repoName){
+    const fetchInfo = await fetch(`https://api.github.com/repos/${username}/${repoName}`);
+    const repoInfo = await fetchInfo.json();
+    //console.log(repoInfo);
+    
+    // Grab languages
+    const fetchLanguages = await fetch(repoInfo.languages_url);
+    const languageData = await fetchLanguages.json();
+    //console.log(languageData);
+
+    // Make list of languages
+    const languages = [];
+    for (const language in languageData){
+        languages.push(language);
+        //console.log(languages);
+    }
+
+    displayRepoInfo(repoInfo, languages);
+};
+
+// Function to display specific repo info
+const displayRepoInfo = function (repoInfo, languages){
+    repoData.innerHTML = "";
+    repoData.classList.remove("hide");
+    allRepos.classList.add("hide");
+    const div = document.createElement("div");
+    div.innerHTML = `
+        <h3>Name: ${repoInfo.name}</h3>
+        <p>Description: ${repoInfo.description}</p>
+        <p>Default Branch: ${repoInfo.default_branch}</p>
+        <p>Languages: ${languages.join(", ")}</p>
+        <a class="visit" href="${repoInfo.html_url}" target="_blank" rel="noreferrer noopener">View Repo on GitHub!</a>
+    `;
+    repoData.append(div);
+};
